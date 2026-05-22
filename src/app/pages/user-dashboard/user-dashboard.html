@@ -1,0 +1,199 @@
+<div class="dashboard-root">
+
+    <!-- ───────────── TOP NAV ───────────── -->
+    <header class="top-nav">
+        <div class="brand">
+            <div class="brand-icon">
+                <mat-icon>group</mat-icon>
+            </div>
+            <div class="brand-text">
+                <span class="brand-name">UserFlow</span>
+                <span class="brand-sub">Admin Dashboard</span>
+            </div>
+        </div>
+        <div class="nav-right">
+            <div class="stat-pill">
+                <mat-icon>people</mat-icon>
+                <span>{{ dataSource.data.length }} Users</span>
+            </div>
+            <button mat-flat-button class="add-user-btn"
+                (click)="openAddUserModal()">
+                <mat-icon>person_add</mat-icon>
+                Add User
+            </button>
+        </div>
+    </header>
+
+    <!-- ───────────── MAIN CONTENT ───────────── -->
+    <main class="main-content">
+
+        <!-- ── CHART + TABLE ROW ── -->
+        <section class="content-grid">
+
+            <!-- PIE CHART PANEL -->
+            <div class="panel chart-panel">
+                <div class="panel-header">
+                    <div class="panel-title-group">
+                        <mat-icon class="panel-icon">donut_large</mat-icon>
+                        <div>
+                            <h3 class="panel-title">Role Distribution</h3>
+                            <p class="panel-sub">User roles breakdown</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas #roleChart width="280" height="280"></canvas>
+                    <div class="chart-center-text">
+                        <span class="chart-total">{{ dataSource.data.length
+                            }}</span>
+                        <span class="chart-total-label">Total</span>
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="chart-legend">
+                    <div class="legend-item" *ngFor="let item of legendItems">
+                        <span class="legend-dot"
+                            [style.background]="item.color"></span>
+                        <span class="legend-role">{{ item.role }}</span>
+                        <span class="legend-count">{{ item.count }}</span>
+                        <span class="legend-pct">{{ item.pct }}%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TABLE PANEL -->
+            <div class="panel table-panel">
+                <div class="panel-header">
+                    <div class="panel-title-group">
+                        <mat-icon class="panel-icon">table_chart</mat-icon>
+                        <div>
+                            <h3 class="panel-title">User Management</h3>
+                            <p class="panel-sub">Manage and monitor all
+                                users</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Toolbar -->
+                <div class="table-toolbar">
+                    <mat-form-field appearance="outline" class="search-field">
+                        <mat-icon matPrefix>search</mat-icon>
+                        <input
+                            matInput
+                            (keyup)="applyFilter($event)"
+                            placeholder="Search by name, email or role…" />
+                    </mat-form-field>
+
+                    <mat-form-field appearance="outline" class="role-filter">
+                        <mat-label>Role</mat-label>
+                        <mat-select
+                            (selectionChange)="applyRoleFilter($event.value)"
+                            value="all">
+                            <mat-option value="all">All Roles</mat-option>
+                            <mat-option value="Admin">Admin</mat-option>
+                            <mat-option value="Editor">Editor</mat-option>
+                            <mat-option value="Viewer">Viewer</mat-option>
+                        </mat-select>
+                    </mat-form-field>
+                </div>
+
+                <!-- Loading bar -->
+                <mat-progress-bar *ngIf="tableLoading" mode="indeterminate"
+                    class="table-loader"></mat-progress-bar>
+
+                <!-- Material Table -->
+                <div class="table-wrapper">
+                    <table mat-table [dataSource]="dataSource" matSort
+                        class="users-table" [class.loading]="tableLoading">
+
+                        <!-- Index Column -->
+                        <ng-container matColumnDef="index">
+                            <th mat-header-cell *matHeaderCellDef>#</th>
+                            <td mat-cell *matCellDef="let row; let i = index">
+                                {{ paginator ? paginator.pageIndex *
+                                paginator.pageSize + i + 1 : i + 1 }}
+                            </td>
+                        </ng-container>
+
+                        <!-- Name Column -->
+                        <ng-container matColumnDef="name">
+                            <th mat-header-cell *matHeaderCellDef
+                                mat-sort-header>Name</th>
+                            <td mat-cell *matCellDef="let row">
+                                <div class="user-cell">
+                                    <div class="user-avatar"
+                                        [ngClass]="row.role.toLowerCase()">
+                                        {{ row.name.charAt(0).toUpperCase() }}
+                                    </div>
+                                    <span class="user-name">{{ row.name
+                                        }}</span>
+                                </div>
+                            </td>
+                        </ng-container>
+
+                        <!-- Email Column -->
+                        <ng-container matColumnDef="email">
+                            <th mat-header-cell *matHeaderCellDef
+                                mat-sort-header>Email</th>
+                            <td mat-cell *matCellDef="let row">
+                                <span class="email-cell">{{ row.email }}</span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Role Column -->
+                        <ng-container matColumnDef="role">
+                            <th mat-header-cell *matHeaderCellDef
+                                mat-sort-header>Role</th>
+                            <td mat-cell *matCellDef="let row">
+                                <span class="role-chip"
+                                    [ngClass]="row.role.toLowerCase()">
+                                    <mat-icon class="chip-icon">{{
+                                        getRoleIcon(row.role) }}</mat-icon>
+                                    {{ row.role }}
+                                </span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Date Column -->
+                        <ng-container matColumnDef="createdAt">
+                            <th mat-header-cell *matHeaderCellDef
+                                mat-sort-header>Joined</th>
+                            <td mat-cell *matCellDef="let row">
+                                <span class="date-cell">{{ row.createdAt |
+                                    date:'dd MMM yyyy' }}</span>
+                            </td>
+                        </ng-container>
+
+                        <!-- Header + Data rows -->
+                        <tr mat-header-row
+                            *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+                        <tr
+                            mat-row
+                            *matRowDef="let row; columns: displayedColumns"
+                            class="data-row"
+                            [@rowAnimation]></tr>
+
+                        <!-- No data row -->
+                        <tr class="mat-row no-data-row" *matNoDataRow>
+                            <td class="mat-cell"
+                                [attr.colspan]="displayedColumns.length">
+                                <div class="no-data">
+                                    <mat-icon>search_off</mat-icon>
+                                    <span>No users match your search</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- Paginator -->
+                <mat-paginator
+                    [pageSizeOptions]="[5, 10, 25]"
+                    [pageSize]="5"
+                    showFirstLastButtons
+                    class="table-paginator"></mat-paginator>
+            </div>
+        </section>
+    </main>
+</div>

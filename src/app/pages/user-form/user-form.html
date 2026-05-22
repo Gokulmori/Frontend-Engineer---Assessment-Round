@@ -1,0 +1,104 @@
+    <div class="modal-wrapper">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="modal-title-group">
+          <div class="modal-icon-wrap">
+            <mat-icon>person_add</mat-icon>
+          </div>
+          <div>
+            <h2 class="modal-title">Add New User</h2>
+            <p class="modal-subtitle">Fill in the details to create a new user</p>
+          </div>
+        </div>
+        <button class="close-btn" mat-icon-button (click)="onCancel()">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      <!-- Form -->
+      <form [formGroup]="userForm" (ngSubmit)="onSubmit()" novalidate>
+        <div class="form-body">
+
+          <!-- Name Field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Full Name</mat-label>
+            <mat-icon matPrefix>badge</mat-icon>
+            <input
+              matInput
+              formControlName="name"
+              placeholder="e.g. Arjun Sharma"
+              autocomplete="off"
+            />
+            <mat-error *ngIf="f['name'].hasError('required')">
+              Name is required
+            </mat-error>
+            <mat-error *ngIf="f['name'].hasError('minlength')">
+              Minimum 2 characters required
+            </mat-error>
+            <mat-error *ngIf="f['name'].hasError('maxlength')">
+              Maximum 60 characters allowed
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Email Field -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Email Address</mat-label>
+            <mat-icon matPrefix>email</mat-icon>
+            <input
+              matInput
+              formControlName="email"
+              placeholder="e.g. arjun@example.com"
+              type="email"
+              autocomplete="off"
+            />
+            <mat-error *ngIf="f['email'].hasError('required')">
+              Email is required
+            </mat-error>
+            <mat-error *ngIf="f['email'].hasError('email')">
+              Please enter a valid email address
+            </mat-error>
+          </mat-form-field>
+
+          <!-- Role Dropdown -->
+          <mat-form-field appearance="outline" class="full-width">
+            <mat-label>Role</mat-label>
+            <mat-icon matPrefix>shield</mat-icon>
+            <mat-select formControlName="role" placeholder="Select a role">
+              <mat-option *ngFor="let role of roles" [value]="role.value">
+                <div class="role-option">
+                  <span class="role-badge" [ngClass]="role.value.toLowerCase()">
+                    {{ role.value }}
+                  </span>
+                </div>
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="f['role'].hasError('required')">
+              Role selection is required
+            </mat-error>
+          </mat-form-field>
+
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="modal-footer">
+          <button
+            type="button"
+            mat-stroked-button
+            class="btn-cancel"
+            (click)="onCancel()"
+          >
+            Cancel
+          </button>
+          <button
+            type="submit"
+            mat-flat-button
+            class="btn-submit"
+            [disabled]="isSubmitting"
+          >
+            <mat-spinner *ngIf="isSubmitting" diameter="20"></mat-spinner>
+            <mat-icon *ngIf="!isSubmitting">check_circle</mat-icon>
+            {{ isSubmitting ? 'Adding...' : 'Add User' }}
+          </button>
+        </div>
+      </form>
+    </div>
